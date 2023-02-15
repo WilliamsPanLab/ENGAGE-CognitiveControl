@@ -1,6 +1,7 @@
 # ENGAGE Cognitive Control Circuit paper
 
-This repo contains steps to run mediation analysis between brain activation in response to Facial Expressions of Emotion Task (FEET) and altered states of consciousness after acute ketamine administration.
+This repo contains steps and code to replicate analysis included in manuscript entitled "Adaptive Changes in the Cognitive Control Brain Circuit Underlie and Predict Behavioral Outcomes for Depression over Two Years". In thi project, we focused on the cognitive control  circuit as a putative neural mechanism of action for a novel behavioral intervention with five repeat measures over two years and explored the possibility of using early changes in this circuit to predict future treatment outcomes.
+
 
 ## High-level steps
 - [Pre-requisite](#pre-requisite)
@@ -17,24 +18,24 @@ This repo contains steps to run mediation analysis between brain activation in r
 
 ## Pre-requisite
 ### Hardware requirements
-All stpes could be done on a standard research computer with reasonable CPUs and RAM. Except that the preprocessing was done on high performance cluster based on the recommendations from [fmriprep](https://fmriprep.org/en/stable/faq.html#how-much-cpu-time-and-ram-should-i-allocate-for-a-typical-fmriprep-run).
+All stpes could be done on a standard research computer with reasonable CPUs and RAM.
 
 ### Software requirements
 
 #### OS requirements
 
-the analysis was conducted and only tested for running on macOS Mojave (10.14.1) and Monterey (12.2.1).
+The analysis was conducted and only tested for running on macOS Mojave (10.14.1) and Monterey (12.2.1).
 
 #### Software
 - [Matlab_R2020b](https://www.mathworks.com/products/new_products/release2020b.html) for neuroimaging analysis
   -  Matlab dependencies: [SPM8](https://www.fil.ion.ucl.ac.uk/spm/software/spm8/), [DPABI V6.0_210501](http://rfmri.org/content/dpabi-v60-and-dpabinet-v10-were-released).
 - [R version 4.0.5](https://www.r-project.org/) for non-neuroimaging analysis and mediation analysis
-  - R dependencies: rio, ggplot2, lme4, tidyverse, sjPlot, coefplot2, performance, see, broom.mixed, kableExtra, janitor, ggeffects, dplyr, gridExtra, qqplotr, emmeans, pbkrtest, knitr,ggpubr, here, table1, psych, broom,lsr, rstatix, formatR, RVAideMemoire, labelled, cowplot, readr, svglite, rmcorr, cowplot, grid, gtable, RColorBrewer, extrafont, corrplot, grDevices,icesTAF, gganimate, lmerTest
+  - R dependencies: rio, ggplot2, lme4, tidyverse, sjPlot, coefplot2, performance, see, broom.mixed, kableExtra, janitor, ggeffects, dplyr, gridExtra, qqplotr, emmeans, pbkrtest, knitr,ggpubr, here, table1, psych, broom,lsr, rstatix, formatR, RVAideMemoire, labelled, cowplot, readr, svglite, rmcorr, cowplot, grid, gtable, RColorBrewer, extrafont, corrplot, grDevices,icesTAF, gganimate
 
 ## Installation guide
   ```
   cd ${where_you_would_like_to_save_the_code}
-  git clone https://github.com/WilliamsPanLab/Ketamine-FEET-Mediation
+  git clone https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl
   ```
   Demo data has been provided in `Ketamine-FEET-Mediation/LME_mediation/csv` for running the analysis in R.
 
@@ -47,7 +48,18 @@ the analysis was conducted and only tested for running on macOS Mojave (10.14.1)
   3. Open `Ketamine-FEET-Mediation/LME_mediation/RMD/P50_correlation_mediation.Rmd` and press `Knit` in Rstudio to generate .html results report. The results should be comparable to `LME_mediation/Results/P50_correlation_mediation.html`
 
   If preferred, scripts in Step 2 and 3 could also be `Run` in Rstudio instead of `Knit`. Please note the data was simulated so the results generated from these scripts won't match the manuscript.
-  
+
+
+
+
+
+
+
+
+
+
+
+
 ## Documentation for methods and corresponding scripts  
 ### data preprocessing and preparation
 #### fMRI data
@@ -72,11 +84,20 @@ Addressing data missingness: for each subject’s questionnaire data under a cer
 
 ### data analysis
 
-#### fMRI Analysis of Variance (ANOVA)
+#### fMRI: Identifying cognitive control circuit as a neural mechanisam engaged by the I-CARE intervention
 
-[Task_repeated_ANOVA_spm.m](https://github.com/WilliamsPanLab/Ketamine-FEET-Mediation/blob/f125b3186f867c03f4dc09b90eae07e72044b225/fmri/Task_repeated_ANOVA_spm.m)
+The code can be found here [Task_repeated_ANOVA_spm.m](https://github.com/WilliamsPanLab/Ketamine-FEET-Mediation/blob/f125b3186f867c03f4dc09b90eae07e72044b225/fmri/Task_repeated_ANOVA_spm.m)
 
-To examine our second objective to test the dose-dependent effects of ketamine on brain activity in response to emotional expressions, we conducted a one-way repeated Analysis of Variance in SPM — with dose as the within-participant factor — on the activation maps for threat faces (consisting of both anger and fear faces) relative to neutral faces, and happy faces relative to neutral faces. Based on the pre-specified primary focus of anterior insula and amygdala neural targets, we constrained our voxel-wise analysis using masks consisting of bilateral anterior insula and amygdala. Conducting within-region voxel-wise analyses instead of deriving an average value per region of interest (ROI) enabled us to focus on the ROIs while still obtaining precision in detecting which part within the region is showing an effect. The definition for ROIs of anterior insula and amygdala was established in our previous work. To correct for multiple comparisons, a voxel threshold of p < 0.001 and a Gaussian random field theory (GRF) family-wise error (FWE) cluster-level correction at p < 0.05 was applied. 
+ENGAGE_CCC_lme_mechanism_predict.m
+
+We constructed two linear mixed models (LMMs) with the change of each behavioral outcome – ∆SPSI and ∆SCL-20 – at six, 12, and 24 months relative to baseline as the dependent variable. Fixed-effect terms included the cognitive control circuit activity change at the same time point relative to baseline  (∆Circuit, quantified as activation change of the NoGo > Go contrast), the interaction of the circuit activity change and intervention groups (I-CARE or U-CARE; Intervention x ∆Circuit), the interaction of circuit change and the time (six, 12, and 24 months; Time x ∆Circuit), and the interaction of all three factors (Intervention x Time x ∆Circuit). The interaction of circuit change and intervention groups (Intervention x ∆Circuit) measured how I-CARE modulated the neural mechanism that underlies the improvement of intervention outcomes. The main effect of cognitive control circuit engagement (∆Circuit) assessed the shared neural mechanism that underlies behavior improvement, regardless of I-CARE or U-CARE. Additionally, these two models examined how intervention-dependent and intervention-independent effects were different between intervention phases via the interaction effects of Time.
+
+#### fMRI: Identifying cognitive control circuit engagement as a predictor of later behavioral improvement
+
+Similar LMMs were conducted with the same SPSI and SCL-20 outcomes at six, 12, and 24 months relative to baseline as the dependent variable in a voxel-wise whole-brain analysis. Fixed effect circuit terms were circuit change from baseline to two months as the behavioral outcome instead of cognitive control circuit activity change at the same timepoint. Beyond cognitive control circuit engagement change at two months relative to baseline (∆Circuit at two months, quantified as activation change of the NoGo > Go contrast at two months), we also modeled the interaction of the circuit change at two months and intervention groups (I-CARE or U-CARE; Intervention x ∆Circuit2MO), the interaction of circuit change at two months and the timepoint (six, 12, and 24 months; Time x ∆Circuit2MO ), and the interaction of all three factors (Intervention x Time x ∆Circuit2MO). The main effect of cognitive control circuit activity (∆Circuit2MO) identified general neural predictors of future behavior improvement, regardless of I-CARE or U-CARE, while the interaction of circuit change at two months and intervention group (Intervention x ∆Circuit2MO) measured how the prediction of future behavioral outcomes using cognitive control circuit change at two months was different in I-CARE versus U-CARE. Time-dependent effects were also examined with time-involved interaction effects.
+
+We utilized the fitlme function of the Statistics and Machine Learning Toolbox in Matlab (https://www.mathworks.com/products/matlab.html) and customized scripts to conduct the voxel-wise whole-brain LMM with clinical measures (here ∆SCL-20 or ∆SPSI) as the dependent variable. The significance of fixed effects was tested under the type III hypotheses using the analysis of variance (ANOVA) function in Matlab. The degrees of freedom for ANOVA were estimated via the Satterthwaite method. All results were corrected multiple comparisons with a voxel threshold of p < 0.001 and a Gaussian random field theory (GRF) familywise error cluster-level correction at p < 0.05 using DPABI V5.1 (http://rfmri.org/dpabi). Data smoothness for GRF correction was estimated on the statistical image following a similar procedure to FSL easythresh.
+
 
 
 
