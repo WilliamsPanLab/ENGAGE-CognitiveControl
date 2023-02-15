@@ -75,7 +75,12 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 4. Generating activation maps: Preprocessed data were entered into a general linear model at the individual level using [SPM8](https://www.fil.ion.ucl.ac.uk/spm/software/spm8/). Each block of emotional expressions was convolved with a canonical hemodynamic response function, and the blocks were used as regressors in the general linear model, as were motion spikes. Activation maps for threat (fear and anger facial expressions) relative to neutral faces, and for happy relative to neutral faces, were estimated to examine ketamine-induced brain activity change in response to negative and positive emotions.
 
 
-#### CADSS and 5D-ASC
+#### Demographic Table 1
+[Generate_Baseline_Demographics.Rmd]()
+
+
+
+#### Behavioral outcomes
 
 [read_redcap_data.R](https://github.com/WilliamsPanLab/Ketamine-FEET-Mediation/blob/fd145b7a7260efa2d74b24a0a4728ddf6321dd23/LME_mediation/R/read_redcap_data.R)
 
