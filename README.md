@@ -82,13 +82,16 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 Addressing data missingness: for each subject’s questionnaire data under a certain dose condition, if the missing items were fewer than 10% of the total item numbers of the questionnaire, we replaced missing items with the group mean of that dose condition. This brought the sample size of CADSS to be n = 13, n = 12, n = 13 for placebo, 0.05 mg/kg, and 0.5 mg/kg and of 5D-ASC to be n = 13 for all three drug visits.
 
 
+
+
+
+
+
+
 ### data analysis
 
 #### fMRI: Identifying cognitive control circuit as a neural mechanisam engaged by the I-CARE intervention
 
-The code can be found here [Task_repeated_ANOVA_spm.m](https://github.com/WilliamsPanLab/Ketamine-FEET-Mediation/blob/f125b3186f867c03f4dc09b90eae07e72044b225/fmri/Task_repeated_ANOVA_spm.m)
-
-ENGAGE_CCC_lme_mechanism_predict.m
 
 We constructed two linear mixed models (LMMs) with the change of each behavioral outcome – ∆SPSI and ∆SCL-20 – at six, 12, and 24 months relative to baseline as the dependent variable. Fixed-effect terms included the cognitive control circuit activity change at the same time point relative to baseline  (∆Circuit, quantified as activation change of the NoGo > Go contrast), the interaction of the circuit activity change and intervention groups (I-CARE or U-CARE; Intervention x ∆Circuit), the interaction of circuit change and the time (six, 12, and 24 months; Time x ∆Circuit), and the interaction of all three factors (Intervention x Time x ∆Circuit). The interaction of circuit change and intervention groups (Intervention x ∆Circuit) measured how I-CARE modulated the neural mechanism that underlies the improvement of intervention outcomes. The main effect of cognitive control circuit engagement (∆Circuit) assessed the shared neural mechanism that underlies behavior improvement, regardless of I-CARE or U-CARE. Additionally, these two models examined how intervention-dependent and intervention-independent effects were different between intervention phases via the interaction effects of Time.
 
@@ -97,6 +100,12 @@ We constructed two linear mixed models (LMMs) with the change of each behavioral
 Similar LMMs were conducted with the same SPSI and SCL-20 outcomes at six, 12, and 24 months relative to baseline as the dependent variable in a voxel-wise whole-brain analysis. Fixed effect circuit terms were circuit change from baseline to two months as the behavioral outcome instead of cognitive control circuit activity change at the same timepoint. Beyond cognitive control circuit engagement change at two months relative to baseline (∆Circuit at two months, quantified as activation change of the NoGo > Go contrast at two months), we also modeled the interaction of the circuit change at two months and intervention groups (I-CARE or U-CARE; Intervention x ∆Circuit2MO), the interaction of circuit change at two months and the timepoint (six, 12, and 24 months; Time x ∆Circuit2MO ), and the interaction of all three factors (Intervention x Time x ∆Circuit2MO). The main effect of cognitive control circuit activity (∆Circuit2MO) identified general neural predictors of future behavior improvement, regardless of I-CARE or U-CARE, while the interaction of circuit change at two months and intervention group (Intervention x ∆Circuit2MO) measured how the prediction of future behavioral outcomes using cognitive control circuit change at two months was different in I-CARE versus U-CARE. Time-dependent effects were also examined with time-involved interaction effects.
 
 We utilized the fitlme function of the Statistics and Machine Learning Toolbox in Matlab (https://www.mathworks.com/products/matlab.html) and customized scripts to conduct the voxel-wise whole-brain LMM with clinical measures (here ∆SCL-20 or ∆SPSI) as the dependent variable. The significance of fixed effects was tested under the type III hypotheses using the analysis of variance (ANOVA) function in Matlab. The degrees of freedom for ANOVA were estimated via the Satterthwaite method. All results were corrected multiple comparisons with a voxel threshold of p < 0.001 and a Gaussian random field theory (GRF) familywise error cluster-level correction at p < 0.05 using DPABI V5.1 (http://rfmri.org/dpabi). Data smoothness for GRF correction was estimated on the statistical image following a similar procedure to FSL easythresh.
+
+The code for generating whole-brain results is here: [Task_repeated_ANOVA_spm.m](https://github.com/WilliamsPanLab/Ketamine-FEET-Mediation/blob/f125b3186f867c03f4dc09b90eae07e72044b225/fmri/Task_repeated_ANOVA_spm.m), this generates the brain results in Fig. 2A, 3A, 4A, 4C as well as Fig. S5A, S6-S8.
+
+The code for generating scatter plots for each regions is here: 
+
+ENGAGE_CCC_lme_mechanism_predict.m
 
 
 
