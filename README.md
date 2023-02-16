@@ -8,7 +8,6 @@ Scrpts are listed based on their order in Results section.
 ## High-level steps
 - [Pre-requisite](#pre-requisite)
 - [Installation guide](#Installation-guide)
-- [Run code with demo data in R](#Run-code-with-demo-data-in-R)
 - [Documentation for methods and corresponding scripts](#Documentation-for-methods-and-corresponding-scripts)
 
 
