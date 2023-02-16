@@ -38,12 +38,13 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 ## Documentation for methods and corresponding scripts  
 
 #### Schematic diagram Figure 1
+[Figure1_Simulation.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/383702627a7a52139e8558ab67e68e19692c61f6/matlab/Figure1_Simulation.m) 
 
-Data demonstrating the modulating effect of intervention or time or their interaction were simulated and visualized using Matlab script [Figure1_Simulation.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/383702627a7a52139e8558ab67e68e19692c61f6/matlab/Figure1_Simulation.m) in Fig. 1.
+This script simulted and visualized data demonstrating the modulating effect of intervention or time or their interaction in Fig. 1.
 
 #### Baseline demographic and characteristics Table 1
 
-Demographic and symptom data at baseline was summarized in Table 1 using the R script [Generate_Baseline_Demographics.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/13928c1f5a0de9e3a4bebac7b93c48de1789545d/r_script/Rmd/Generate_Baseline_Demographics.Rmd)
+[Generate_Baseline_Demographics.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/13928c1f5a0de9e3a4bebac7b93c48de1789545d/r_script/Rmd/Generate_Baseline_Demographics.Rmd)
 
 
 #### Examining effects of I-CARE on behavioral outcomes over U-CARE and delineating individuals’ behavioral outcome trajectories
