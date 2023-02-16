@@ -1,11 +1,13 @@
 # ENGAGE Cognitive Control Circuit paper
 
-This repo contains steps and code to replicate analysis included in manuscript entitled "Adaptive Changes in the Cognitive Control Brain Circuit Underlie and Predict Behavioral Outcomes for Depression over Two Years". In thi project, we focused on the cognitive control  circuit as a putative neural mechanism of action for a novel behavioral intervention with five repeat measures over two years and explored the possibility of using early changes in this circuit to predict future treatment outcomes. The whole-brain voxel-wise Linear Mixed Model analysis was conducted in Matlab while the cross-validated prediction was conducted in R.
+This repo contains steps and code to replicate analysis included in manuscript entitled "Adaptive Changes in the Cognitive Control Brain Circuit Underlie and Predict Behavioral Outcomes for Depression over Two Years". In thi project, we focused on the cognitive control  circuit as a putative neural mechanism of action for a novel behavioral intervention with five repeat measures over two years and explored the possibility of using early changes in this circuit to predict future treatment outcomes. The whole-brain voxel-wise Linear Mixed Model analysis was conducted in Matlab while the cross-validated prediction was conducted in R. Scrpts are listed based on their order in Results section.
 
 
 ## High-level steps
-
-
+- [Pre-requisite](#pre-requisite)
+- [Installation guide](#Installation-guide)
+- [Run code with demo data in R](#Run-code-with-demo-data-in-R)
+- [Documentation for methods and corresponding scripts](#Documentation-for-methods-and-corresponding-scripts)
 
 
 ## Pre-requisite
@@ -32,6 +34,10 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
 
 ## Documentation for methods and corresponding scripts  
+
+#### Schematic diagram in Figure 1
+
+Data demonstrating the modulating effect of intervention or time or their interaction were simulated and visualized using [Figure1_Simulation.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/383702627a7a52139e8558ab67e68e19692c61f6/matlab/Figure1_Simulation.m).
 
 #### Demographic Table 1
 
