@@ -1,0 +1,382 @@
+---
+title: "ENGAGE_prediction"
+output: html_document
+---
+
+
+### load useful packages
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(warning = FALSE, message = FALSE)
+# knitr::opts_chunk$set(fig.width= 3, fig.asp = 0.8, fig.pos = '!h') 
+# saved <- options(repr.plot.width=3, repr.plot.height=2) #  ,repr.plot.asp = 0.8
+pacman::p_load(pacman, rio, lme4, lmerTest,tidyverse, sjPlot, coefplot2, performance, see, broom.mixed, kableExtra, janitor, ggeffects, dplyr, gridExtra, qqplotr, emmeans, pbkrtest, knitr,ggpubr, here, table1, psych, cvms, groupdata2, caret, pROC,glmnet, caret)
+options(kableExtra.auto_format = FALSE)
+options(knitr.table.format = 'markdown')
+
+# use here from the here package
+here <- here::here
+
+# load functions used by this text written by me
+source(here("R/ggplot_the_model.R"))
+
+
+```
+### define subfunctions
+create table via kable
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, results='asis'}
+## create table via kable
+create_table <- function(data_table, caption_var, footnote_var){
+  data_table <- head(as.data.frame(data_table), Inf) %>%
+    mutate(across(is.numeric, ~ round(., 2)))
+  if ("Pr(>F)" %in% colnames(data_table)){
+     data_table <- rename(data_table, p.value = `Pr(>F)`) %>%
+     mutate(p.value = case_when(
+    p.value < 0.001 ~ paste0(as.character(p.value), "***"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.01 ~ paste0(as.character(p.value), "**"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.05 ~ paste0(as.character(p.value), "*"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.10 ~ paste0(as.character(p.value), "."),
+    TRUE ~ paste0(p.value)
+  ))
+  }
+  
+  kable_plot <- data_table %>%
+    # rename(p.value = `Pr(>F)`) %>%
+    kbl(caption = caption_var, format = "html") %>%
+    kable_classic(full_width = F, html_font = "Arial",  font_size = 10) %>%
+  footnote(general = footnote_var,general_title = "---") #%>%
+    # save_kable(file = paste(save_name, sep = ""), self_contained = T)
+  cat('\n')
+  print(kable_plot)
+  cat('\n')
+  }
+
+```
+run_ggplot_the_effects
+```{r fig.keep = "all", fig.align = "center"} 
+# to be noted the fig setting here doesn;t work, change the options in ggplot_the_effects
+## ggplot the effects
+run_ggplot_the_effects <- function(emtrends_results, title_var){
+  # calculate confidence interval
+  margin_confint <- confint(emtrends_results$contrasts, level=0.95)
+  emtrends_contrast_sum <- summary(emtrends_results$contrasts)
+  emtrends_contrast_sum$lower.CL <- margin_confint$lower.CL
+  emtrends_contrast_sum$upper.CL <- margin_confint$upper.CL
+  
+  marginal_plot <- ggplot_the_effects(
+    fit = glme_modal,
+    fit_pairs = emtrends_contrast_sum,
+    effect_label = title_var)
+  options(repr.plot.width=0.5, repr.plot.height= 2) # ,repr.plot.asp = 0.8 doesn't work
+  print(marginal_plot + theme(axis.text = element_text(size = 8)))
+  cat('\n')
+}
+
+```
+
+### read data
+
+be careful of setting the option of contrast for LME modeling
+
+```{r}
+# read fmri data
+Datadir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/engage/SPM/Level2/MixedModel/111_fMRI_stats_spikesonly_FD_fromFile_GO_NO_GO/NogovsGo/SCL_20/MixedModel_SCL20/DataforR"
+Figdir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/SPM/Figures/Symptom"
+data_csv <- import(paste(Datadir,"/Data4Model2_3_MixedModel_SCL20.csv",sep = ""))
+data_csv$Time <- factor(data_csv$Time, levels = c('6MO','12MO','24MO'))
+data_csv$Group <- factor(data_csv$Group, levels = c('U-care','I-care'))
+data_csv$gender <- factor(data_csv$gender, levels = c('Female','Male'))
+data_csv$subjects <- factor(data_csv$subjects)
+options(contrasts = c("contr.sum","contr.poly"))
+head(data_csv,1)
+```
+### ROI list
+
+```{r}
+ROI_names <- c('rIPL3','lSPL')
+```
+
+## continous outcome prediction
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, fig.keep = "all", results='asis'}
+# r fig.asp=0.8, fig.width=4, 
+for (i_name in 1:2) {
+
+  #lme modeling
+  ROI_name_i <- ROI_names[i_name]
+  #fmri variable
+  fmri <- paste(ROI_name_i,"_2MO_change",sep = "")
+    # filter data
+  data_filter <- data_csv %>%
+    select(fmri, subjects, gender, age, Group, Time, SCL_20_change, SCL_20_baseline) %>%
+    drop_na()
+  
+  # cross validation
+  # Set seed for reproducibility
+  for (i in 10) {
+    set.seed(i)
+    cat("\n")
+    print(paste("This is Seed ",i,sep = ""))
+  # select data for modeling
+  data_filter <- data_csv %>%
+    select(lSPL_2MO_change, rIPL3_2MO_change, subjects, gender, age, Group, Time, SCL_20_change, SCL_20_baseline) %>%
+    drop_na()  
+  # Fold data
+  k_fold <- 5
+  data_fold <- fold(
+    data = data_filter, k = k_fold,
+    cat_col = 'Group',id_col = 'subjects') %>% #
+    arrange(.folds)
+ # cross validation
+  CV1 <- cross_validate(
+  data = data_fold,
+  formulas = c("SCL_20_change ~ age + gender + (1|subjects)","SCL_20_change ~ SCL_20_baseline + age + gender + (1|subjects)", paste("SCL_20_change ~ SCL_20_baseline + ", fmri, " + age + gender + (1|subjects)", sep = "")),
+  fold_cols = '.folds',
+  family = 'gaussian',
+  REML = FALSE
+)
+
+  print(CV1 %>% select_metrics() %>% mutate(across(is.numeric, ~ round(., 2))) %>% kbl() %>% kable_classic(full_width = F, html_font = "Arial",font_size = 13))
+# # Nested results from the different folds
+print(CV1$Results[[1]] %>% mutate(across(is.numeric, ~ round(., 2)))%>% kbl() %>% kable_classic(full_width = F, html_font = "Arial",font_size = 13))
+print(CV1$Results[[2]] %>% mutate(across(is.numeric, ~ round(., 2)))%>% kbl() %>% kable_classic(full_width = F, html_font = "Arial",font_size = 13))
+print(CV1$Results[[3]] %>% mutate(across(is.numeric, ~ round(., 2)))%>% kbl() %>% kable_classic(full_width = F, html_font = "Arial",font_size = 13)) 
+
+  r_test <- 0
+  r_test_baseline <- 0
+  r_test_control <- 0
+  # cv_performance <- data.frame()
+  formula_control <- "SCL_20_change ~ age + gender + (1|subjects)"
+  formula_baseline <- "SCL_20_change ~ SCL_20_baseline + age + gender + (1|subjects)"
+  formula_sim <- paste("SCL_20_change ~ SCL_20_baseline + ", fmri, " + age + gender + (1|subjects)", sep = "")
+  for (i_fold in 1:k_fold) {
+    print(paste("This is fold ",i_fold,sep = ""))
+    data_ifold <- data_fold %>%
+      filter(.folds != i_fold)
+    # print(data_ifold %>% head(Inf) %>% kable())
+    data_test <- data_fold %>%
+      filter(.folds == i_fold)
+    lme_model_ifold_control <- lmer(formula_control, data = data_ifold, REML = FALSE)
+    lme_model_ifold_baseline <- lmer(formula_baseline, data = data_ifold, REML = FALSE)
+    lme_model_ifold <- lmer(formula_sim, data = data_ifold, REML = FALSE)
+    
+    
+    anova_result <- anova(lme_model_ifold,type = 'marginal')
+    cat("\n\n\n\n")
+    # create_table(anova_result, "Marginal Analysis of Variance Table with Satterthwaite's method", footnote_var_anova)
+    lme_predict <- predict(lme_model_ifold, newdata = data_test, allow.new.levels = TRUE)
+    lme_predict_baseline <- predict(lme_model_ifold_baseline, newdata = data_test, allow.new.levels = TRUE)
+    lme_predict_control <- predict(lme_model_ifold_control, newdata = data_test, allow.new.levels = TRUE)
+    lme_rmse <- sqrt(mean((lme_predict - data_test$SCL_20_change)^2))
+    lme_rmse_baseline <- sqrt(mean((lme_predict_baseline - data_test$SCL_20_change)^2))
+    lme_rmse_control <- sqrt(mean((lme_predict_control - data_test$SCL_20_change)^2))
+    print(paste("RMSE = ", lme_rmse, sep = ""))
+    cat("\n")
+    print(paste("RMSE Baseline = ", lme_rmse_baseline, sep = ""))
+    cat("\n")
+    print(paste("RMSE Control = ", lme_rmse_control, sep = ""))
+    cat("\n")
+    r_test <- r_test + cor(lme_predict, data_test$SCL_20_change,  method = "pearson", use = "complete.obs")
+    r_test_baseline <- r_test_baseline + cor(lme_predict_baseline, data_test$SCL_20_change,  method = "pearson", use = "complete.obs")
+    r_test_control <- r_test_control + cor(lme_predict_control, data_test$SCL_20_change,  method = "pearson", use = "complete.obs")
+    knit_print(cor.test(lme_predict, data_test$SCL_20_change,  method = "pearson", use = "complete.obs"))
+    cat("\n")
+    knit_print(cor.test(lme_predict_baseline, data_test$SCL_20_change,  method = "pearson", use = "complete.obs"))
+    cat("\n")
+    knit_print(cor.test(lme_predict_control, data_test$SCL_20_change,  method = "pearson", use = "complete.obs"))
+    cat("\n")
+    
+
+  }
+  print(paste("mean r = ", round(r_test/k_fold, 3), sep = ""))
+  print(paste("mean baseline r = ", round(r_test_baseline/k_fold, 3), sep = ""))
+  print(paste("mean control r = ", round(r_test_control/k_fold, 3), sep = ""))
+  
+  }
+  
+}
+```
+
+
+## Predicting binary outcome: response
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, fig.keep = "all", results='asis'}
+
+## Logistic regression only for 6month
+set.seed(5)
+  y_all_test <- matrix(0, nrow = nrow(data_fold), ncol = 1) # combine all test subjects
+y_all_test_con <- matrix(0, nrow = nrow(data_fold), ncol = 1) # combine all test subjects
+y_all_test_baseline_con <- matrix(0, nrow = nrow(data_fold), ncol = 1) # combine all test subjects
+y_all_test_baseline <- matrix(0, nrow = nrow(data_fold), ncol = 1) # combine all test subjects
+performance_test <- matrix(0, nrow = 12, ncol = k_fold)
+performance_test_baseline <- matrix(0, nrow = 12, ncol = k_fold)
+performance_test_control <- matrix(0, nrow = 12, ncol = k_fold)
+set.seed(2)
+  # select data for modeling
+  data_filter <- data_csv %>%
+    select(lSPL_2MO_change, rIPL3_2MO_change, subjects, gender, age, Group, Time, Response, Remission, SCL_20_baseline) %>%
+    mutate(Response= 2 - as.numeric(Response), Remission= 2- as.numeric(Remission)) %>%
+    drop_na()  #%>% filter(Time == "6MO") #, fmri
+  data_filter_6MO <- data_filter %>%
+    filter(Time == "6MO")
+  # Fold data
+  k_fold <- 2
+  data_fold <- fold(
+    data = data_filter, k = k_fold,
+    cat_col = 'Group',id_col = 'subjects') %>% #
+    arrange(.folds)
+  
+  
+  
+  for (i_fold in 1:k_fold) { #
+    print(paste("This is fold ",i_fold,sep = ""))
+    data_ifold <- data_fold %>%
+      filter(.folds != i_fold, Time =="6MO")
+    # print(data_ifold %>% head(Inf) %>% kable())
+    data_test <- data_fold %>%
+      filter(.folds == i_fold)
+    
+    x_train <- data_ifold%>%
+  select(lSPL_2MO_change,rIPL3_2MO_change, gender,age, SCL_20_baseline)%>%
+  data.matrix()%>%
+    .[,-1]
+  
+  # baseline symptoms
+  x0_train <- data_ifold%>%
+  select(age,gender, SCL_20_baseline)%>%
+  data.matrix()%>%
+    .[,-1]
+    
+  # y
+  y_train <- data_ifold%>%
+  select(Response)%>%
+    data.matrix()%>%
+    .[,-1]
+  
+  ## testing data
+  x_test <- data_test%>%
+  select(lSPL_2MO_change,rIPL3_2MO_change, gender,age, SCL_20_baseline)%>%
+  data.matrix()%>%
+    .[,-1]
+  # baseline symptoms
+  x0_test <- data_test%>%
+  select(age,gender, SCL_20_baseline)%>%
+  data.matrix()%>%
+    .[,-1]
+  # y
+  y_test <- data_test%>%
+  select(Response)%>%
+  data.matrix()%>%
+    .[,-1]
+
+  
+   fit_logistic <- glm(formula[3], data = data_ifold, family = "binomial")
+   y_train_pred_s <- predict(fit_logistic, newdata = data_ifold, type='response') %>% # 1se
+    data.matrix()
+  y_test_pred_s <- predict(fit_logistic, newdata = data_test, type='response') %>% # 1se
+    data.matrix()
+  
+    my_roc <- roc(y_train, y_train_pred_s) #roc(y_test, y_test_pred_s)
+  my_th <- coords(my_roc, "best", ret = "threshold") %>%
+    data.matrix()
+    
+    ind_1 <- y_test_pred_s>=my_th[1]
+  ind_0 <- y_test_pred_s<my_th[1]
+  y_test_pred_s_c <- y_test_pred_s
+  y_test_pred_s_c[ind_1]=1
+  y_test_pred_s_c[ind_0]=0
+  y_all_test[data_fold$.folds == i_fold] <- y_test_pred_s_c # combine all sub
+  y_all_test_con[data_fold$.folds == i_fold] <- y_test_pred_s
+  print(con_mat <- confusionMatrix(as.factor(y_test_pred_s_c),as.factor(y_test)))
+  cat("\n")
+  plot(fit_logistic)
+  performance_test[, i_fold] = c(con_mat$overall[1],con_mat$byClass)
+  
+  roc(y_test, y_test_pred_s, percent=F,   boot.n=1000, ci.alpha=0.9, stratified=FALSE, plot=TRUE, grid=TRUE, show.thres=TRUE, legacy.axes = TRUE, reuse.auc = TRUE,
+# print.thres = c(0.30,0.35, 0.40, 0.45,0.48, 0.50,0.55, 0.60),#
+print.auc = TRUE, print.thres.col = "blue", ci=TRUE, ci.type="bars", print.thres.cex = 0.7 ) # , main = paste("ROC curve using","(N = 78")    ",length(y_test),")
+  
+# prediction using symptoms
+  
+ fit_logistic_baseline<- glm(formula[2], data = data_ifold, family = "binomial")
+
+  y_train_pred_baseline_s = predict(fit_logistic_baseline, newdata = data_ifold, type='response') %>% # 1se
+    data.matrix()
+  y_test_pred_baseline_s = predict(fit_logistic_baseline, newdata = data_test, type='response') %>% # 1se
+    data.matrix()
+    
+  my_roc <- roc(y_train, y_train_pred_baseline_s)#roc(y_test, y_test_pred_baseline_s)
+  my_th <- coords(my_roc, "best", ret = "threshold")%>%
+    data.matrix()
+  
+  
+  ind_1 <- y_test_pred_baseline_s>=my_th[1]
+  ind_0 <- y_test_pred_baseline_s<my_th[1]
+  
+  y_test_pred_baseline_s_c <- y_test_pred_baseline_s
+  y_test_pred_baseline_s_c[ind_1]=1
+  y_test_pred_baseline_s_c[ind_0]=0
+   y_all_test_baseline[data_fold$.folds == i_fold] <- y_test_pred_baseline_s_c
+  y_all_test_baseline_con[data_fold$.folds == i_fold] <- y_test_pred_baseline_s
+  print(con_mat_baseline <- confusionMatrix(as.factor(y_test_pred_baseline_s_c),as.factor(y_test)))
+  plot(fit_logistic_baseline)
+  cat("\n")
+  performance_test_baseline[, i_fold] = c(con_mat_baseline$overall[1],con_mat_baseline$byClass)
+  
+  roc(y_test, y_test_pred_baseline_s, percent=F,   boot.n=1000, ci.alpha=0.9, stratified=FALSE, plot=TRUE, grid=TRUE, show.thres=TRUE, legacy.axes = TRUE, reuse.auc = TRUE,
+# print.thres = c(0.30,0.35, 0.40, 0.45,0.48, 0.50,0.55, 0.60),#
+print.auc = TRUE, print.thres.col = "blue", ci=TRUE, ci.type="bars", print.thres.cex = 0.7 ) # , main = paste("ROC curve using","(N = 78)")   ",length(y_test),"
+  
+  
+}
+for (i in c(1:k_fold)) {
+  print(paste("This is  ",i,sep = ""))
+  print(mean(performance_test[i,]))
+print(mean(performance_test_baseline[i,]))
+}
+
+
+
+# performance for combined all subjects
+# with fmri
+print(con_mat_all_fmri <- confusionMatrix(as.factor(y_all_test),as.factor(data_fold$Response)))
+print(con_mat_all_fmri$overall %>%
+        kable())
+performance_test_all_fmri <-  c(con_mat_all_fmri$overall[1],con_mat_all_fmri$byClass)
+
+# only baseline
+print(con_mat_all_baseline <- confusionMatrix(as.factor(y_all_test_baseline),as.factor(data_fold$Response)))
+  cat("\n")
+  performance_test_all_baseline <-  c(con_mat_all_baseline$overall[1],con_mat_all_baseline$byClass)
+
+# ROC
+# tiff(file=paste(Figdir, "/ROC_logistic_regression.tiff", sep = ""), width=3, height=3, res=300, units="in")
+par(pty = "s")
+roc(data_fold$Response, y_all_test_con, plot=TRUE, ci.alpha=0.95,  ci=FALSE, ci.type="bars", legacy.axes = TRUE, percent = TRUE, xlab= "False Positive Percentage", ylab = "True Positive Percentage", col="#a50f15", lwd=4, print.auc=TRUE, print.auc.x=80, print.auc.y=20)
+plot.roc(data_fold$Response,y_all_test_baseline_con, ci.alpha=0.95,  ci=FALSE, ci.type="bars", percent = TRUE, col="#252525", lwd=4, print.auc=TRUE, add=TRUE, print.auc.x=80, print.auc.y=10)
+par(pty = "m")
+# dev.off()
+```
+
+
+```{r}
+# Clear figures
+#dev.off()
+
+# Clear environment
+rm(list = ls()) 
+
+# Clear packages
+p_unload(all)  # Remove all add-ons
+
+# Clear console
+cat("\014")  # ctrl+L
+
+# Clear mind :)

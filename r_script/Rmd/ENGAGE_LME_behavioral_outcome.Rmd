@@ -1,0 +1,197 @@
+---
+title: "ENGAGE_LME_Task_Activation"
+Author: Xue Zhang
+date: "04/13/2021"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+toc: yes
+toc_float: yes
+code_folding: hide
+---
+
+### load useful packages
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width= 2, fig.asp = 0.8, fig.pos = '!h')
+# saved <- options(repr.plot.width=3, repr.plot.height=2) #  ,repr.plot.asp = 0.8
+pacman::p_load(pacman, rio, lme4, lmerTest,tidyverse, sjPlot, coefplot2, performance, see, broom.mixed, kableExtra, janitor, ggeffects, dplyr, gridExtra, qqplotr, emmeans, pbkrtest, knitr,ggpubr, here, table1, psych, rmcorr, corrplot)
+options(kableExtra.auto_format = TRUE)
+# options(knitr.table.format = 'markdown')
+# load functions used by this text written by me
+source(here("R/ggplot_the_model.R"))
+
+# use here from the here package
+here <- here::here
+
+
+```
+
+### define subfunctions
+create table via kable
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, results='asis'}
+## create table via kable
+create_table <- function(data_table, caption_var, footnote_var){
+  data_table <- head(as.data.frame(data_table), Inf) %>%
+    mutate(across(is.numeric, ~ round(., 2)))
+  if ("Pr(>F)" %in% colnames(data_table)){
+     data_table <- rename(data_table, p.value = `Pr(>F)`) %>%
+     mutate(p.value = case_when(
+    p.value < 0.001 ~ paste0(as.character(p.value), "***"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.01 ~ paste0(as.character(p.value), "**"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.05 ~ paste0(as.character(p.value), "*"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.10 ~ paste0(as.character(p.value), "."),
+    TRUE ~ paste0(p.value)
+  ))
+  }
+  
+  kable_plot <- data_table %>%
+    kable()
+  #   # rename(p.value = `Pr(>F)`) %>%
+  #   kbl(caption = caption_var, format = "html") %>%
+  #   kable_classic(lightable_options = "hover",full_width = F, html_font = "Arial",  font_size = 10) %>%
+  # footnote(general = footnote_var,general_title = "---") #%>%
+  #   # save_kable(file = paste(save_name, sep = ""), self_contained = T)
+  cat('\n')
+  print(kable_plot)
+  cat('\n')
+  }
+
+```
+
+run_ggplot_the_effects
+```{r fig.keep = "all", fig.align = "center"} 
+# to be noted the fig setting here doesn;t work, change the options in ggplot_the_effects
+## ggplot the effects
+run_ggplot_the_effects <- function(emtrends_results, title_var){
+  # calculate confidence interval
+  margin_confint <- confint(emtrends_results$contrasts, level=0.95)
+  emtrends_contrast_sum <- summary(emtrends_results$contrasts)
+  emtrends_contrast_sum$lower.CL <- margin_confint$lower.CL
+  emtrends_contrast_sum$upper.CL <- margin_confint$upper.CL
+  
+  
+  marginal_plot <- ggplot_the_effects(
+    fit = lme_model,
+    fit_pairs = emtrends_contrast_sum,
+    effect_label = title_var)
+  options(repr.plot.width=0.5, repr.plot.height= 2) # ,repr.plot.asp = 0.8 doesn't work
+  marginal_plot <- marginal_plot + theme(axis.text = element_text(size = 8))
+  print(marginal_plot)
+ }
+```
+
+
+### read data
+
+be careful of setting the option of contrast for LME modeling
+
+```{r}
+# read fmri data
+Datadir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/engage/SPM/Level2/MixedModel/111_fMRI_stats_spikesonly_FD_fromFile_GO_NO_GO/NogovsGo/SCL_20/MixedModel_SCL20/DataforR"
+data_csv <- import(paste(Datadir,"/Data4Model2_3_MixedModel_SCL20.csv",sep = ""))
+data_csv$Time <- factor(data_csv$Time, levels = c('6MO','12MO','24MO'))
+data_csv$Group <- factor(data_csv$Group, levels = c('U-care','I-care'))
+data_csv$gender <- factor(data_csv$gender, levels = c('Female','Male'))
+data_csv$subjects <- factor(data_csv$subjects)
+options(contrasts = c("contr.sum","contr.poly"))
+head(data_csv,1)
+```
+
+#### treatment effects on SCL-20 and SPSI: I-CARE vs U-CARE
+```{r}
+data_fortest <- data_csv %>%
+  dplyr::select(c("subjects","Group", "Time", "SCL_20_change", "SCL_20_baseline", "SPSI_change", "SPSI_baseline"))
+
+# SCL-20
+formula <-  as.formula(paste("SCL_20_change ~ Time*Group + SCL_20_baseline +(1|subjects)", sep = ""))
+### all timepoints
+lme_model <- lmer(formula, data = data_fortest, REML = FALSE)
+anova_result <- anova(lme_model,type = 'marginal')
+
+# SPSI
+formula <-  as.formula(paste("SPSI_change ~ Time*Group + SPSI_baseline +(1|subjects)", sep = ""))
+lme_model <- lmer(formula, data = data_fortest, REML = FALSE)
+anova_result <- anova(lme_model,type = 'marginal')
+
+```
+
+
+
+### Correlation of SCL-20 or SPSI at BL, 6, 12 and 24 months
+```{r}
+# read SCL short version data
+Datadir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/engage/SPM/Level2/MixedModel/111_fMRI_stats_spikesonly_FD_fromFile_GO_NO_GO/NogovsGo/SCL_20/MixedModel_SCL20/DataforR"
+SCL_short <- as.data.frame(import(paste(Datadir,"/SCL_20_short.csv",sep = "")))
+
+pairs.panels(SCL_short,bg = "grey", smooth = FALSE,scale = TRUE,density = TRUE,ellipses = FALSE, method = "pearson", pch = 19, lm = TRUE, show.points = TRUE, cor = TRUE, jiggle = FALSE, factor = 2, hist.col = 8, stars = TRUE, ci = TRUE,gap=0.5, cex.labels=1.5, cex.main=1, cex.axis = 1, cex.cor = 2, breaks = seq(0, 2.75, 0.275), xlim = c(0 , 2.75), ylim = c(0 , 2.75), main = "Correlation of SCL-20 at BL, 6MO and 12MO")  #, tck = c(0, 2)
+print(summary(SCL_short))
+
+
+# read SPSI short version data
+Datadir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/engage/SPM/Level2/MixedModel/111_fMRI_stats_spikesonly_FD_fromFile_GO_NO_GO/NogovsGo/SPSI/MixedModel_SPSI/DataforR"
+SPSI_short <- as.data.frame(import(paste(Datadir,"/SPSI_short.csv",sep = "")))
+
+print(pairs.panels(SPSI_short,bg = "grey", smooth = FALSE,scale = TRUE,density = TRUE,ellipses = FALSE, method = "pearson", pch = 19, lm = TRUE, show.points = TRUE, cor = TRUE, jiggle = FALSE, factor = 2, hist.col = 8, stars = TRUE, ci = TRUE,gap=0.5, cex.labels=1.5, cex.main=1, cex.axis = 1, cex.cor = 1, breaks = seq(0, 20, 2), xlim = c(0 , 20), ylim = c(0 , 20), main = "Correlation of SPSI at BL, 6MO and 12MO"))  #, tck = c(0, 2)
+print(summary(SPSI_short))
+
+
+```
+
+
+### Visualization of SCL-20 or SPSI at BL, 6, 12 and 24 months
+```{r}
+# read SCL and visualize it
+SCL_long <- SCL_short %>%
+  mutate(Subjects = as.factor(1:108)) %>%
+  pivot_longer(-c(Subjects), names_to = 'Time', values_to = 'SCL_20') %>%
+  mutate(Time = factor(Time, levels = c('BL', '6MO', '12MO', '24MO')))
+  
+SCL_long %>% 
+ggplot(aes(x = Time, y = SCL_20, group = Subjects)) + geom_point(aes(group = Subjects), size = 0.1, alpha = 0.5) + geom_line(alpha = 0.5, size = 0.1) +  stat_summary(aes(y = SCL_20, group = 1), fun.y=mean, geom="line", size = 0.25) + stat_summary(fun.y="mean", geom="point", aes(group = 1),size=0.5)
+
+# read SPSI and visualize it
+
+SPSI_long <- SPSI_short %>%
+  mutate(Subjects = as.factor(1:108)) %>%
+  pivot_longer(-c(Subjects), names_to = 'Time', values_to = 'SPSI') %>%
+  mutate(Time = factor(Time, levels = c('BL', '6MO', '12MO', '24MO')))
+  
+SPSI_long %>% 
+ggplot(aes(x = Time, y = SPSI, group = Subjects)) + geom_point(aes(group = Subjects), size = 0.1, alpha = 0.5) + geom_line(alpha = 0.5, size = 0.1) +  stat_summary(aes(y = SPSI, group = 1), fun.y=mean, geom="line", size = 0.25) + stat_summary(fun.y="mean", geom="point", aes(group = 1),size=0.5)
+
+
+
+```
+
+
+```{r}
+# Clear figures
+dev.off()
+
+# Clear environment
+rm(list = ls()) 
+
+# Clear packages
+p_unload(all)  # Remove all add-ons
+
+# Clear console
+cat("\014")  # ctrl+L
+
+# Clear mind :)
+
+```
+
+
+
+

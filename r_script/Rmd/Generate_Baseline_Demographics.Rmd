@@ -1,0 +1,45 @@
+---
+title: "Generate_Baseline_Demographics"
+Author: Xue Zhang
+date: "05/19/2021"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+toc: yes
+toc_float: yes
+code_folding: hide
+---
+
+
+### load useful packages
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+# knitr::opts_chunk$set(fig.width= 3, fig.asp = 0.8, fig.pos = '!h') 
+# saved <- options(repr.plot.width=3, repr.plot.height=2) #  ,repr.plot.asp = 0.8
+pacman::p_load(pacman, rio, lme4, lmerTest,tidyverse, sjPlot, coefplot2, performance, see, broom.mixed, kableExtra, janitor, ggeffects, dplyr, gridExtra, qqplotr, emmeans, pbkrtest, knitr,ggpubr, here, table1, psych, rstatix)
+options(kableExtra.auto_format = TRUE)
+# options(knitr.table.format = 'markdown')
+
+# use here from the here package
+here <- here::here
+```
+
+### read data
+Refer to: https://cran.r-project.org/web/packages/table1/vignettes/table1-examples.html
+
+```{r}
+# read fmri data
+Datadir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/engage/CSV"
+data_csv <- import(paste(Datadir,"/Baseline_Demographics.csv",sep = ""))
+demo <- data_csv %>%
+  select(-Site, -Subjects)%>%
+  mutate(Group= factor(Group, levels = c(1,2), labels = c('I-CARE', "U-CARE"))) %>%
+  mutate(Sex= factor(Sex, levels = c(0,1), labels = c("Male",'Female'))) %>%
+  mutate(Education=factor(Education, levels = c(1,2,3,4), labels = c("High school graduate or GED", "Some college", "Undergraduate degree",  "Graduate level work or degree"))) %>%
+  mutate(Race=factor(Race, levels = c(2, 3, 4, 1, 5), labels = c("Non-Hispanic White", "Black", "Asian/Pacific Islander", "Hispanic", "Other or not reported")))
+units(demo$Age)       <- "years"
+units(demo$`Body mass index`) <- "kg/m2"
+table1(~ Age + Sex + Race + Education + `Body mass index` + `20-item Depression Symptom Checklist score` + `9-item Patient Health Questionnaire` + `7-Item Generalised Anxiety Disorder scale score` + `SPSI_Rawscore` | Group, data=demo, overall="Total")
+
+```

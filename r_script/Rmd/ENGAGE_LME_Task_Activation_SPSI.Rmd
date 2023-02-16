@@ -1,0 +1,219 @@
+---
+title: "ENGAGE_LME_Task_Activation"
+Author: Xue Zhang
+date: "04/13/2021"
+output:
+  html_document: default
+  word_document: default
+  pdf_document: default
+toc: yes
+toc_float: yes
+code_folding: hide
+---
+
+### load useful packages
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(fig.width= 2, fig.asp = 0.8, fig.pos = '!h')
+# saved <- options(repr.plot.width=3, repr.plot.height=2) #  ,repr.plot.asp = 0.8
+pacman::p_load(pacman, rio, lme4, lmerTest,tidyverse, sjPlot, coefplot2, performance, see, broom.mixed, kableExtra, janitor, ggeffects, dplyr, gridExtra, qqplotr, emmeans, pbkrtest, knitr,ggpubr, here, table1, psych)
+options(kableExtra.auto_format = TRUE)
+# options(knitr.table.format = 'markdown')
+# load functions used by this text written by me
+source(here("R/ggplot_the_model.R"))
+
+# use here from the here package
+here <- here::here
+```
+
+### define subfunctions
+create table via kable
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, results='asis'}
+## create table via kable
+create_table <- function(data_table, caption_var, footnote_var){
+  data_table <- head(as.data.frame(data_table), Inf) %>%
+    mutate(across(is.numeric, ~ round(., 2)))
+  if ("Pr(>F)" %in% colnames(data_table)){
+     data_table <- rename(data_table, p.value = `Pr(>F)`) %>%
+     mutate(p.value = case_when(
+    p.value < 0.001 ~ paste0(as.character(p.value), "***"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.01 ~ paste0(as.character(p.value), "**"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.05 ~ paste0(as.character(p.value), "*"),
+    TRUE ~ paste0(p.value)
+  )) %>%
+    mutate(p.value = case_when(
+    p.value < 0.10 ~ paste0(as.character(p.value), "."),
+    TRUE ~ paste0(p.value)
+  ))
+  }
+  
+  kable_plot <- data_table %>%
+    kable()
+  #   # rename(p.value = `Pr(>F)`) %>%
+  #   kbl(caption = caption_var, format = "html") %>%
+  #   kable_classic(lightable_options = "hover",full_width = F, html_font = "Arial",  font_size = 10) %>%
+  # footnote(general = footnote_var,general_title = "---") #%>%
+  #   # save_kable(file = paste(save_name, sep = ""), self_contained = T)
+  cat('\n')
+  print(kable_plot)
+  cat('\n')
+  }
+
+```
+run_ggplot_the_effects
+```{r fig.keep = "all", fig.align = "center"} 
+# to be noted the fig setting here doesn;t work, change the options in ggplot_the_effects
+## ggplot the effects
+run_ggplot_the_effects <- function(emtrends_results, title_var){
+  # calculate confidence interval
+  margin_confint <- confint(emtrends_results$contrasts, level=0.95)
+  emtrends_contrast_sum <- summary(emtrends_results$contrasts)
+  emtrends_contrast_sum$lower.CL <- margin_confint$lower.CL
+  emtrends_contrast_sum$upper.CL <- margin_confint$upper.CL
+  
+  marginal_plot <- ggplot_the_effects(
+    fit = lme_model,
+    fit_pairs = emtrends_contrast_sum,
+    effect_label = title_var)
+  options(repr.plot.width=0.5, repr.plot.height= 2) # ,repr.plot.asp = 0.8 doesn't work
+  print(marginal_plot + theme(axis.text = element_text(size = 8)))
+}
+```
+
+
+### read data
+
+be careful of setting the option of contrast for LME modeling
+
+```{r}
+# read fmri data
+Datadir = "/Users/xuezhang/Documents/Stanford/Projects/ENGAGE/Analysis/engage/SPM/Level2/MixedModel/111_fMRI_stats_spikesonly_FD_fromFile_GO_NO_GO/NogovsGo/SPSI/MixedModel_SPSI/DataforR"
+data_csv <- import(paste(Datadir,"/Data4Model2_3_MixedModel_SPSI.csv",sep = ""))
+data_csv$Time <- factor(data_csv$Time, levels = c('6MO','12MO','24MO'))
+data_csv$Group <- factor(data_csv$Group, levels = c('U-care','I-care'))
+data_csv$gender <- factor(data_csv$gender, levels = c('Female','Male'))
+data_csv$subjects <- factor(data_csv$subjects)
+options(contrasts = c("contr.sum","contr.poly"))
+head(data_csv,1)
+```
+
+### ROI list
+
+```{r}
+ROI_names <- c('lDLPFC2','rIPL_1','Precuneus2','lFusiform','rIPL_2','lIPL')
+```
+
+### Identifying cognitive control circuit as a neural mechanisam engaged by the I-CARE intervention
+
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, fig.keep = "all", results='asis'}
+# footnote for plot
+footnote_var_anova <- as.character("Signif. codes:  0 `'***'` 0.001 `'**'` 0.01 `'*'` 0.05 `'.'` 0.1 `' '` 1")
+
+footnote_var_emtrend <- as.character("Results are averaged over the levels of: Group, gender 
+Degrees-of-freedom method: kenward-roger 
+P value adjustment: tukey method for comparing a family of 3 estimates")
+for (i_name in 1:4) {
+  #lme modeling
+  ROI_name_i <- ROI_names[i_name]
+  #fmri variable
+  fmri <- paste(ROI_name_i,"_change",sep = "")
+  #formula
+  formula <-  as.formula(paste("SPSI_change ~ SPSI_baseline + BMI_baseline + ", fmri, " + ",fmri,":Time + ",fmri,":Group + ",fmri, ":Time:Group + age + gender + (1|subjects)", sep = ""))
+  #lmer modeling
+  lme_model <- lmer(formula, data = data_csv, REML = FALSE)
+  #ROI name
+  print(ROI_name_i)
+  cat("\n\n\n\n")
+  #check model
+  # print(check_model(lme_model))
+  cat("\n\n\n\n")
+  #summary model
+  print("Linear Mixed Model")
+  print(lme_model)
+  cat("\n\n\n\n")
+  #show anova -- goes to supplement, needs modification
+  anova_result <- anova(lme_model,type = 'marginal')
+  create_table(anova_result, "Marginal Analysis of Variance Table with Satterthwaite's method", footnote_var_anova)
+  cat("\n\n\n\n")
+
+    #plot SPSI ~ fmri x group, only lines
+    formula_plot_2 = as.formula(paste("Group ~ ", fmri, sep = ""));
+    a <-  emmip(lme_model,  formula_plot_2 , cov.reduce = range, CIs = T) + labs(title = ROI_name_i, x = "\u0394 NoGo > Go fMRI activation", y = "\u0394 SPSI") + theme_classic() + theme(legend.position = "top") #ylim(c(-2.5,2)) + xlim(c(-1.5,1.5)) +
+    print(a + scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Set1"))
+    cat("\n\n\n\n")
+    #plot marginal effect
+    print("Marginal Effects")
+    emtrends_results <- emtrends(lme_model, pairwise ~ Group, var = fmri)
+    create_table(emtrends_results, "Post-hoc Marginal Estimates", footnote_var_emtrend)
+    run_ggplot_the_effects(emtrends_results, "")
+  
+}
+```
+
+
+## Identifying cognitive control circuit engagement at 2 months as a predictor of later behavioral improvement at 6, 12, and 24 months
+```{r warning=FALSE, paged.print=TRUE, comment= NA, message=FALSE, fig.keep = "all", results='asis'}
+## r fig.asp=0.8, fig.width=4,
+for (i_name in 5:6) {
+  #lme modeling
+  ROI_name_i <- ROI_names[i_name]
+  #fmri variable
+  fmri <- paste(ROI_name_i,"_2MO_change",sep = "")
+  #formula
+  formula <-  as.formula(paste("SPSI_change ~ SPSI_baseline + ", fmri, " + ",fmri,":Time + ",fmri,":Group + ",fmri, ":Time:Group + age + gender + (1|subjects)", sep = ""))
+  #lmer modeling
+  lme_model <- lmer(formula, data = data_csv, REML = FALSE)
+  #ROI name
+  print(ROI_name_i)
+  cat("\n\n\n\n")
+  #check model
+  # print(check_model(lme_model))
+  cat("\n\n\n\n")
+  #summary model
+  print("Linear Mixed Model")
+  print(summary(lme_model))
+  cat("\n\n\n\n")
+  #show anova -- goes to supplement, needs modification
+  anova_result <- anova(lme_model,type = 'marginal')
+  cat("\n\n\n\n")
+  create_table(anova_result, "Marginal Analysis of Variance Table with Satterthwaite's method", footnote_var_anova)
+  #general indicator
+  emtrends_results <- emtrends(lme_model, pairwise ~ Time, var = fmri)
+  create_table(emtrends_results, "Post-hoc Marginal Estimates", footnote_var_emtrend)
+  run_ggplot_the_effects(emtrends_results, "Pairwise Comparison")
+  #plot SPSI ~ fmri x time, with scatters
+  formula_plot_1 = as.formula(paste("Time ~ ", fmri, sep = ""));
+  print(emmip(lme_model,  formula_plot_1 , cov.reduce = range, CIs = T) +
+    geom_point(aes_string(x = fmri, y = "SPSI_change", colour = "Time", fill = "Time"), data = data_csv, pch = 16, width = 0.1, alpha = 0.5) + labs(title = ROI_name_i, x = "\u0394 NoGo > Go fMRI activation", y = "\u0394 SPSI") + theme_classic() + theme(legend.position = "top")+ scale_colour_brewer(palette = "Set1") + scale_fill_brewer(palette = "Set1")) #ylim(c(-2.5,2)) + xlim(c(-1.5,1.5)) +
+  cat("\n\n\n\n")
+
+}
+```
+
+
+```{r}
+# Clear figures
+#dev.off()
+
+# Clear environment
+rm(list = ls()) 
+
+# Clear packages
+p_unload(all)  # Remove all add-ons
+
+# Clear console
+cat("\014")  # ctrl+L
+
+# Clear mind :)
+
+```
+
+
+
+
