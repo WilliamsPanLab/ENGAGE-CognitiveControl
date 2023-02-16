@@ -38,19 +38,20 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 ## Documentation for methods and corresponding scripts  
 
 #### Schematic diagram Figure 1
-[Figure1_Simulation.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/383702627a7a52139e8558ab67e68e19692c61f6/matlab/Figure1_Simulation.m) 
+  
+  [Figure1_Simulation.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/383702627a7a52139e8558ab67e68e19692c61f6/matlab/Figure1_Simulation.m) 
 
 - This Matlab script simulted and visualized data demonstrating the modulating effect of intervention or time or their interaction in Fig. 1.
 
 #### Baseline demographic and characteristics Table 1
 
-[Generate_Baseline_Demographics.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/13928c1f5a0de9e3a4bebac7b93c48de1789545d/r_script/Rmd/Generate_Baseline_Demographics.Rmd)
+  [Generate_Baseline_Demographics.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/13928c1f5a0de9e3a4bebac7b93c48de1789545d/r_script/Rmd/Generate_Baseline_Demographics.Rmd)
 
 - This R script summrized baseline demographic and characteristics for each intervention groups and the overall group in Table 1.
 
 #### Examining effects of I-CARE on behavioral outcomes over U-CARE and delineating individuals’ behavioral outcome trajectories
 
-[ENGAGE_LME_behavioral_outcome.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/13928c1f5a0de9e3a4bebac7b93c48de1789545d/r_script/Rmd/ENGAGE_LME_behavioral_outcome.Rmd)
+  [ENGAGE_LME_behavioral_outcome.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/13928c1f5a0de9e3a4bebac7b93c48de1789545d/r_script/Rmd/ENGAGE_LME_behavioral_outcome.Rmd)
 
   - This R script examined the effect of I-CARE over U-CARE on improving SPSI and SCL-20 including six, 12-, and 24-months data using an LMM. 
 
@@ -58,7 +59,7 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
 #### whole-brain LMMs in identifying mechanism and predictive markers within the cognitive control circuit
 
-[STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise.m)
+  [STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise.m)
 
   - This Matlab script generated whole-brain results in Fig. 2A, 3A, 4A, 4C as well as Fig. S5A, S6-S8.
   
@@ -70,7 +71,7 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
 #### ROI LMMs and visualizations
 
-[STEP2_ENGAGE_CCC_lme_ROI_visualization.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP2_ENGAGE_CCC_lme_ROI_visualization.m) 
+  [STEP2_ENGAGE_CCC_lme_ROI_visualization.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP2_ENGAGE_CCC_lme_ROI_visualization.m) 
 
   - This Matlab script generated statistics in Table 2 and scatter plots in Fig. 2B, 3B, 4B, and 4D for significant regions that survived multiple comparison correct in the above whole-brain analysis.  
   
@@ -78,7 +79,7 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
 #### Post-hoc beta estimation for significant LMMs
 
-Below scripts produced Fig. S3 and Table S2.
+  Below scripts produced Fig. S3 and Table S2.
 
   - [ENGAGE_LME_Task_Activation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_LME_Task_Activation_SCL20.Rmd) estimated beta coefficient per each intervention group or timepoint for SCL-20 depression severity.
   
@@ -86,8 +87,8 @@ Below scripts produced Fig. S3 and Table S2.
 
 #### Testing generalizability of two-month neuroimaging predictors using 5-fold cross validation
 
-[ENGAGE_cross_validation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_cross_validation_SCL20.Rmd)
+  [ENGAGE_cross_validation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_cross_validation_SCL20.Rmd)
 
-- The R script ran cross-validation for the continuous and binary prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5, Table 3, and Table S3.
+  - The R script ran cross-validation for the continuous and binary prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5, Table 3, and Table S3.
 
 
