@@ -8,7 +8,7 @@ Scrpts are listed based on their order in Results section.
 ## High-level steps
 - [Pre-requisite](#pre-requisite)
 - [Installation guide](#Installation-guide)
-- [Run code with demo data in R](#Run-code-with-demo-data-in-R)
+- [How to run scripts](#How-to-run-scripts)
 - [Documentation for methods and corresponding scripts](#Documentation-for-methods-and-corresponding-scripts)
 
 
@@ -34,8 +34,7 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
   git clone https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl
   ```
   
-## Run code with demo data in R
-  Demo data are provided in 'ENGAGE-CognitiveControl/demo_data'.
+## How to run scripts
   1. When running Matlab scripts, `cd ${where_you_would_like_to_save_the_code}/ENGAGE-CognitiveControl/matlab` and run scripts within this folder.
   2. When running R scripts, open the R project file `ENGAGE-CognitiveControl/r_script/ENGAGE_LME_Task_Activation.Rproj` and run RMD under the `Rmd` subfolder.
   
