@@ -98,8 +98,8 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
   [ENGAGE_cross_validation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_cross_validation_SCL20.Rmd)
 
-  - The Matlab script ran cross-validation for the continuous prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5A, Table 3, and Table S3.
+  - The Matlab script ran cross-validation for the continuous prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5A, Table 3, and Table S3. It also generates the average feature map in Fig. S6.
 
-  - The Matlab script ran cross-validation for the prediction of 6-month binary response using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5B. 
+  - The Matlab script ran cross-validation for the prediction of 6-month binary response using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5B. It also generates the average feature map in Fig. S6.
 
 
