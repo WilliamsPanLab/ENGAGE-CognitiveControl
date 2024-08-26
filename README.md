@@ -72,22 +72,25 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
   - The significance of fixed effects was tested under the type III hypotheses using the analysis of variance (ANOVA) function in Matlab. 
   
   - The degrees of freedom for ANOVA were estimated via the Satterthwaite method. All results were corrected multiple comparisons with a voxel threshold of p < 0.001 and a Gaussian random field theory (GRF) familywise error cluster-level correction at p < 0.05 using [DPABI V5.1](http://rfmri.org/dpabi).
+  - This script could be slightly modified to examine the association between baseline circuit activation and outcomes.
 
 #### ROI LMMs and visualizations
 
   [STEP2_ENGAGE_CCC_lme_ROI_visualization.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP2_ENGAGE_CCC_lme_ROI_visualization.m) 
 
-  - This Matlab script generated statistics in Table 2 and scatter plots in Fig. 2B, 3B, 4B, and 4D for significant regions that survived multiple comparison correction in the above whole-brain analysis.  
+  - This Matlab script generated statistics in Table 2 and scatter plots in Fig. 2B, 3B, 4B, 4D, and Fig. S3 and S4B for significant regions that survived multiple comparison corrections in the above whole-brain analysis.  
   
   - This script also generated the ANOVA comparison of models using cognitive control circuit as the independent variables and alternative control models using only baseline characteristics in Table S1.
 
 #### Post-hoc beta estimation for significant LMMs
 
-  Below scripts produced Fig. S3 and Table S2.
+  Below scripts produced Table S2.
 
   - [ENGAGE_LME_Task_Activation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_LME_Task_Activation_SCL20.Rmd) estimated beta coefficient per each intervention group or timepoint for SCL-20 depression severity.
   
   - [ENGAGE_LME_Task_Activation_SPSI.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_LME_Task_Activation_SPSI.Rmd) estimated beta coefficient per each intervention group or timepoint for SCL-20 SPSI problem-solving ability.
+
+ Inside these scripts it also tested the confounding effects of go-nogo performance and medication prescription
 
 #### Testing generalizability of two-month neuroimaging predictors using 5-fold cross validation
 
@@ -95,6 +98,8 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
   [ENGAGE_cross_validation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_cross_validation_SCL20.Rmd)
 
-  - The R script ran cross-validation for the continuous and binary prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5, Table 3, and Table S3.
+  - The Matlab script ran cross-validation for the continuous prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5A, Table 3, and Table S3.
+
+  - The Matlab script ran cross-validation for the prediction of 6-month binary response using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5B. 
 
 
