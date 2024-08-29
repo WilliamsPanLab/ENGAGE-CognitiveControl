@@ -92,8 +92,7 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
  Inside these scripts it also tested the confounding effects of go-nogo performance and medication prescription
 
-#### Testing generalizability of two-month neuroimaging predictors using 5-fold cross validation
-
+#### Testing generalizability of two-month neuroimaging predictors using cross-validation
 
 
   [ENGAGE_cross_validation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_cross_validation_SCL20.Rmd)
