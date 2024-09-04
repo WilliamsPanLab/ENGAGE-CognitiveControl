@@ -63,7 +63,7 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
 
 #### whole-brain LMMs in identifying the mechanism and predictive markers within the cognitive control circuit
 
-  [STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise.m)
+  [STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise_v4.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1dba4b68dd7b179ed775846183ba001b1fe29ead/matlab/STEP1_ENGAGE_CCC_lme_wholebrain_voxelwise_v4.m)
 
   - This Matlab script generated whole-brain results in Fig. 2A, 3A, 4A, 4C as well as Fig. S4A, S9-S11.
   
@@ -72,13 +72,14 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
   - The significance of fixed effects was tested under the type III hypotheses using the analysis of variance (ANOVA) function in Matlab. 
   
   - The degrees of freedom for ANOVA were estimated via the Satterthwaite method. All results were corrected multiple comparisons with a voxel threshold of p < 0.001 and a Gaussian random field theory (GRF) familywise error cluster-level correction at p < 0.05 using [DPABI V5.1](http://rfmri.org/dpabi).
-  - This script could be slightly modified to examine the association between baseline circuit activation and outcomes.
+  - This script could be modified to examine the association between baseline circuit activation and outcomes.
 
 #### ROI LMMs and visualizations
 
-  [STEP2_ENGAGE_CCC_lme_ROI_visualization.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/matlab/STEP2_ENGAGE_CCC_lme_ROI_visualization.m) 
+  [STEP2_ENGAGE_CCC_lme_ROI_visualization_mechanistic_v3.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1dba4b68dd7b179ed775846183ba001b1fe29ead/matlab/STEP2_ENGAGE_CCC_lme_ROI_visualization_mechanistic_v3.m) 
+  [STEP2_ENGAGE_CCC_lme_ROI_visualization_predictive_v3.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1dba4b68dd7b179ed775846183ba001b1fe29ead/matlab/STEP2_ENGAGE_CCC_lme_ROI_visualization_predictive_v3.m) 
 
-  - This Matlab script generated statistics in Table 2 and scatter plots in Fig. 2B, 3B, 4B, 4D, and Fig. S3 and S4B for significant regions that survived multiple comparison corrections in the above whole-brain analysis.  
+  - These two Matlab scripts generated statistics in Table 2 and scatter plots in Fig. 2B, 3B, 4B, 4D, and Fig. S3 and S4B for significant regions that survived multiple comparison corrections in the above whole-brain analysis, for mechanism markers and predictive markers respectively.
   
   - This script also generated the ANOVA comparison of models using cognitive control circuit as the independent variables and alternative control models using only baseline characteristics in Table S1.
 
@@ -90,14 +91,16 @@ The analysis was conducted and only tested for running on macOS Mojave (10.14.1)
   
   - [ENGAGE_LME_Task_Activation_SPSI.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_LME_Task_Activation_SPSI.Rmd) estimated beta coefficient per each intervention group or timepoint for SCL-20 SPSI problem-solving ability.
 
- Inside these scripts it also tested the confounding effects of go-nogo performance and medication prescription
+ Inside these scripts, it tested the confounding effects of go-nogo performance and medication prescription; Additionally, it tested the association between behavioral performance and treatment outcomes.
 
 #### Testing generalizability of two-month neuroimaging predictors using cross-validation
 
 
-  [ENGAGE_cross_validation_SCL20.Rmd](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1b19afde1c0c010ca0b44e19d64cd492a13905d9/r_script/Rmd/ENGAGE_cross_validation_SCL20.Rmd)
+  [STEP3_ENGAGE_CCC_lme_wholebrain_voxelwise_CV_v3.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1dba4b68dd7b179ed775846183ba001b1fe29ead/matlab/STEP3_ENGAGE_CCC_lme_wholebrain_voxelwise_CV_v3.m)
 
   - The Matlab script ran cross-validation for the continuous prediction of 6,12, and 24 months SCL-20 using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5A, Table 3, and Table S3. It also generates the average feature map in Fig. S6.
+
+  [STEP3_ENGAGE_CCC_lme_wholebrain_voxelwise_CV_binary_v5.m](https://github.com/WilliamsPanLab/ENGAGE-CognitiveControl/blob/1dba4b68dd7b179ed775846183ba001b1fe29ead/matlab/STEP3_ENGAGE_CCC_lme_wholebrain_voxelwise_CV_binary_v5.m)
 
   - The Matlab script ran cross-validation for the prediction of 6-month binary response using 2 months cognitive control circuit activation and reported its performance against control model using only baseline characteristics in Fig. 5B. It also generates the average feature map in Fig. S6.
 
